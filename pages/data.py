@@ -1,0 +1,2 @@
+resident_data = []
+

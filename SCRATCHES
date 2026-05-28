@@ -1,0 +1,962 @@
+# import tkinter as tk
+# from tkinter import ttk, messagebox
+# from pages.youth import create_youth
+# from pages.child import create_child
+# from pages.ofw_section import create_ofw_section
+# from pages.work_section import create_work_section
+# from pages.data import resident_data
+# from insert import save_responder
+
+# from datetime import datetime
+# from tkcalendar import DateEntry
+# from db import connect_db
+
+
+# def create_form(parent):
+
+#     # ---------------- MAIN FRAME ----------------
+
+#     frame = tk.Frame(parent, bg="#f5f6fa")
+
+#     header_frame = tk.Frame(frame, bg="#f5f6fa")
+#     header_frame.pack(fill="x", padx=20, pady=10)
+
+# # Title (bold, left aligned)
+#     tk.Label(
+#         header_frame,
+#         text="Add Resident",
+#         font=("Arial", 20, "bold"),
+#         bg="#f5f6fa",
+#         anchor="w"
+#     ).pack(anchor="w")
+
+# # Subtitle (smaller text below)
+#     tk.Label(
+#         header_frame,
+#         text="Responders Information",
+#         font=("Arial", 10),
+#         fg="gray",
+#         bg="#f5f6fa",
+#         anchor="w"
+#     ).pack(anchor="w")
+    
+#     # ---------------- SCROLL AREA ----------------
+#     canvas = tk.Canvas(frame, bg="#f5f6fa", highlightthickness=0)
+#     scrollbar = tk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+
+#     scroll_frame = tk.Frame(canvas, bg="#f5f6fa")
+#     scroll_frame.pack(anchor="w", fill="both", expand=True)
+
+#     scroll_frame.bind(
+#         "<Configure>",
+#         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+#     )
+
+#     window_id = canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+
+#     def center_frame(event):
+#         canvas.itemconfig(window_id, width=event.width)
+
+#     canvas.bind("<Configure>", center_frame)
+
+#     canvas.configure(yscrollcommand=scrollbar.set)
+
+#     canvas.pack(side="left", fill="both", expand=True)
+#     scrollbar.pack(side="right", fill="y")
+
+#     canvas.bind("<Configure>", lambda e: canvas.itemconfig(window_id, width=e.width))
+
+# # ---------------- FORM CONTAINER ----------------
+#     form_frame = tk.Frame(scroll_frame, bg="white", padx=20, pady=20)
+#     form_frame.pack(pady=10)
+
+# # =================================================
+# # TOP: NAME ROW (HORIZONTAL)
+# # =================================================
+#     name_frame = tk.Frame(form_frame, bg="white")
+#     name_frame.pack(fill="x", pady=10)
+
+#     # CENTER WRAPPER (new)
+#     name_inner = tk.Frame(name_frame, bg="white")
+#     name_inner.pack(anchor="center", fill="x")
+
+#     name_row = tk.Frame(name_inner, bg="white")
+#     name_row.pack()
+
+#     # VARIABLES
+#     last_name = tk.StringVar()
+#     middle_name = tk.StringVar()
+#     first_name = tk.StringVar()
+#     ext_name = tk.StringVar()
+
+#     def field(parent, label, var):
+
+#         f = tk.Frame(parent, bg="white", width=180)
+#         f.pack(side="left", padx=10, pady=5)
+
+#         tk.Label(
+#             f,
+#             text=label,
+#             bg="white"
+#         ).pack(anchor="w")
+
+#         tk.Entry(
+#             f,
+#             width=24,
+#             textvariable=var
+#         ).pack(anchor="w")
+
+#     field(name_row, "First Name", first_name)
+#     field(name_row, "Middle Name", middle_name)
+#     field(name_row, "Last Name", last_name)
+#     field(name_row, "Extension Name", ext_name)
+
+# # =================================================
+# # BIRTHDATE + AGE
+# # =================================================
+
+#     birthdate_var = tk.StringVar()
+
+#     birth_age = tk.Frame(form_frame, bg="white")
+#     birth_age.pack(fill="x", pady=10)
+
+#     # CENTER WRAPPER (for clean alignment)
+#     birth_inner = tk.Frame(birth_age, bg="white")
+#     birth_inner.pack(anchor="center")
+
+#     # ---------------- LEFT SIDE (Birthdate) ----------------
+#     bd = tk.Frame(birth_inner, bg="white")
+#     bd.pack(side="left", padx=20)
+
+#     tk.Label(bd, text="Birthdate", bg="white").pack(anchor="w")
+
+#     today = datetime.today()
+
+#     birthdate_entry = DateEntry(
+#         bd,
+#         width=45,
+#         textvariable=birthdate_var,
+#         background="#273c75",
+#         foreground="white",
+#         borderwidth=2,
+#         date_pattern="yyyy-mm-dd",
+#         state="normal",
+#         maxdate=today  # ✅ prevents selecting future dates
+#     )
+#     birthdate_entry.pack(anchor="w")
+
+
+# # ---------------- RIGHT SIDE (Age) ----------------
+#     age_var = tk.StringVar()
+
+#     age_box = tk.Frame(birth_inner, bg="white")
+#     age_box.pack(side="left", padx=20)
+
+#     tk.Label(age_box, text="Age", bg="white").pack(anchor="w")
+
+#     age_entry = tk.Entry(
+#         age_box,
+#         width=50,
+#         textvariable=age_var,
+#         state="readonly"
+#     )
+#     age_entry.pack(anchor="w")
+
+
+# # ---------------- CALCULATE AGE ----------------
+#     def calculate_age(event=None, *args):
+#         try:
+#             value = birthdate_var.get()
+
+#             # Only calculate if full valid format
+#             if len(value) != 10:
+#                 age_var.set("")
+#                 return
+
+#             birthdate = datetime.strptime(value, "%Y-%m-%d")
+#             today = datetime.today()
+
+#             if birthdate > today:
+#                 age_var.set("")
+#                 return
+
+#             age = today.year - birthdate.year - (
+#                 (today.month, today.day) < (birthdate.month, birthdate.day)
+#             )
+
+#             age_var.set(str(max(age, 0)))
+
+#         except:
+#             age_var.set("")
+
+
+#     age_dynamic_container = tk.Frame(form_frame, bg="white")
+#     age_dynamic_container.pack(fill="x", pady=10)
+
+# # ---------------- YOUTH / CHILD CONDITION ----------------
+#     def check_age(*args):
+#         try:
+#             age = int(age_var.get())
+
+#             youth_frame.pack_forget()
+#             child_frame.pack_forget()
+
+#             # ---- CHILD (0–4) ----
+#             if 0 <= age <= 4:
+#                 child_frame.pack(anchor="w", pady=10)
+#             else:
+#                 child_frame.pack_forget()
+
+#             # ---- YOUTH (15–30) ----
+#             if 15 <= age <= 30:
+#                 youth_frame.pack(anchor="w", pady=10)
+#             else:
+#                 youth_frame.pack_forget()
+
+#         except:
+#             for widget in [youth_frame, child_frame]:
+#                 widget.pack_forget()
+
+
+# # ---------------- TRIGGERS ----------------
+#     birthdate_entry.bind("<<DateEntrySelected>>", calculate_age)
+
+#     # ✅ triggers even when typing or changing value programmatically
+#     birthdate_var.trace_add("write", calculate_age)
+
+#     # existing trigger for youth/child logic
+#     age_var.trace_add("write", check_age)
+# # =================================================
+# # ADDRESS + BARANGAY (CENTERED)
+# # =================================================
+
+#     addr_frame = tk.Frame(form_frame, bg="white")
+#     addr_frame.pack(fill="x", pady=10)
+
+#     # Center wrapper (this is the key fix)
+#     center_wrapper = tk.Frame(addr_frame, bg="white")
+#     center_wrapper.pack(anchor="center")
+
+#     address_var = tk.StringVar()
+#     barangay_var = tk.StringVar()
+
+#     # -------- ADDRESS --------
+#     address_container = tk.Frame(center_wrapper, bg="white")
+#     address_container.pack(side="left", padx=20)
+
+#     tk.Label(address_container, text="Address", bg="white").pack(anchor="w")
+
+#     tk.Entry(
+#         address_container,
+#         width=50,
+#         textvariable=address_var
+#     ).pack()
+
+#     # -------- BARANGAY --------
+#     barangay_container = tk.Frame(center_wrapper, bg="white")
+#     barangay_container.pack(side="left", padx=20)
+
+#     tk.Label(barangay_container, text="Barangay", bg="white").pack(anchor="w")
+
+#     barangay_list = [
+#         "Barangay Zone I", "Barangay Zone II", "Barangay Zone III",
+#         "Barangay Zone IV", "Barangay Zone V", "Barangay Zone VI",
+#         "Barangay Zone VII", "Barangay Zone VIII",
+#         "De La Paz", "San Antonio", "San Buenaventura", "San Diego",
+#         "San Isidro", "San Jose", "San Juan", "San Luis",
+#         "San Pablo", "San Pedro", "San Rafael", "San Roque",
+#         "San Salvador", "Santo Domingo", "Santo Tomas"
+#     ]
+
+#     barangay_cb = ttk.Combobox(
+#         barangay_container,
+#         values=barangay_list,
+#         textvariable=barangay_var,
+#         state="readonly",
+#         width=50
+#     )
+#     barangay_cb.pack()
+# # =================================================
+# # RELIGION + SEX (CENTERED)
+# # =================================================
+
+#     top_frame = tk.Frame(form_frame, bg="white")
+#     top_frame.pack(fill="x", pady=10)
+
+#     # Center wrapper (key fix)
+#     center_wrapper = tk.Frame(top_frame, bg="white")
+#     center_wrapper.pack(anchor="center")
+
+#     # -------- RELIGION --------
+#     rel_frame = tk.Frame(center_wrapper, bg="white")
+#     rel_frame.pack(side="left", padx=20)
+
+#     tk.Label(rel_frame, text="Religion", bg="white").pack(anchor="w")
+
+#     religion_var = tk.StringVar()
+#     other_religion_var = tk.StringVar()
+
+#     religions = [
+#         "Roman Catholic",
+#         "Aglipayan",
+#         "Iglesia ni Cristo",
+#         "Islam",
+#         "Christian",
+#         "Jehovah's Witness",
+#         "Seventh-day Adventist",
+#         "Others"
+#     ]
+
+#     religion_cb = ttk.Combobox(
+#         rel_frame,
+#         values=religions,
+#         textvariable=religion_var,
+#         state="readonly",
+#         width=50
+#     )
+#     religion_cb.pack(anchor="w", pady=10)
+
+#     other_entry = tk.Entry(rel_frame, textvariable=other_religion_var, width=50)
+
+#     def check_religion(event=None):
+#         if religion_var.get() == "Others":
+#             other_entry.pack(anchor="w", pady=5)
+#         else:
+#             other_entry.pack_forget()
+#             other_religion_var.set("")
+
+#     religion_cb.bind("<<ComboboxSelected>>", check_religion)
+
+
+#     # -------- SEX --------
+#     sex_frame = tk.Frame(center_wrapper, bg="white")
+#     sex_frame.pack(side="left", padx=20)
+
+#     tk.Label(sex_frame, text="Sex", bg="white").pack(anchor="w")
+
+#     sex_var = tk.StringVar()
+
+#     sex_options_frame = tk.Frame(sex_frame, bg="white")
+#     sex_options_frame.pack(anchor="w", pady=5)
+
+#     for s in ["Male", "Female", "LGBTQ+"]:
+#         tk.Radiobutton(
+#             sex_options_frame,
+#             text=s,
+#             variable=sex_var,
+#             value=s,
+#             bg="white"
+#         ).pack(side="left", padx=5)
+
+# # =================================================
+# # CONTACT SECTION (HORIZONTAL ROW)
+# # =================================================
+
+#     interviewer_var = tk.StringVar()
+#     position_var = tk.StringVar()
+#     interview_date_var = tk.StringVar()
+
+#     contact = tk.Frame(form_frame, bg="white")
+#     contact.pack(anchor="w", pady=10)
+
+#     contact = tk.Frame(form_frame, bg="white")
+#     contact.pack(anchor="center", pady=15)
+
+#     # ---------------- DATE OF INTERVIEW (CALENDAR) ----------------
+#     date_frame = tk.Frame(contact, bg="white")
+#     date_frame.pack(side="left", padx=15)
+
+#     tk.Label(date_frame, text="Date of Interview", bg="white").pack(anchor="center")
+
+#     date_entry = DateEntry(
+#         date_frame,
+#         width=18,
+#         textvariable=interview_date_var,
+#         background="#273c75",
+#         foreground="white",
+#         borderwidth=2,
+#         date_pattern="yyyy-mm-dd",
+#         state="normal"
+#     )
+#     date_entry.pack()
+
+
+
+#     # ---------------- INTERVIEWED BY ----------------
+#     interviewer_frame = tk.Frame(contact, bg="white")
+#     interviewer_frame.pack(side="left", padx=15)
+
+#     tk.Label(interviewer_frame, text="Interviewed By", bg="white").pack(anchor="center")
+
+#     interviewer_entry = tk.Entry(interviewer_frame, width=40, textvariable=interviewer_var)
+#     interviewer_entry.pack()
+
+#     # ---------------- POSITION ----------------
+#     position_frame = tk.Frame(contact, bg="white")
+#     position_frame.pack(side="left", padx=15)
+
+#     tk.Label(position_frame, text="Position", bg="white").pack(anchor="center")
+
+#     position_entry = tk.Entry(position_frame, width=40, textvariable=position_var)
+#     position_entry.pack()
+
+
+
+
+
+
+
+# # =================================================
+# # LINE BREAK
+# # =================================================
+#     tk.Frame(form_frame, bg="black", height=2, width=700).pack(pady=15, fill="x")
+
+
+
+
+
+
+
+# # =================================================
+# # EMPLOYMENT TOP SECTION (VERTICAL STACK - LEFT ALIGNED)
+# # =================================================
+
+#     emp_top_frame = tk.Frame(form_frame, bg="white")
+#     emp_top_frame.pack(fill="x", pady=20)
+
+#     # LEFT CONTAINER (no centering anymore)
+#     container = tk.Frame(emp_top_frame, bg="white")
+#     container.pack(anchor="w", padx=40)
+
+#     SECTION_PADX = 25
+
+
+# # =================================================
+# # EMPLOYMENT INFORMATION
+# # =================================================
+
+#     emp_info_frame = tk.Frame(container, bg="white")
+#     emp_info_frame.pack(anchor="w", pady=(0, 15))
+
+#     tk.Label(
+#         emp_info_frame,
+#         text="Employment Information",
+#         bg="white",
+#         font=("Segoe UI", 12, "bold")
+#     ).pack(anchor="w", pady=(0, 8))
+
+#     emp_info_var = tk.StringVar()
+#     emp_info_options = ["Private", "Government", "Self-employed"]
+
+#     for opt in emp_info_options:
+#         tk.Radiobutton(
+#             emp_info_frame,
+#             text=opt,
+#             variable=emp_info_var,
+#             value=opt,
+#             bg="white",
+#             font=("Segoe UI", 10),
+#             anchor="w",
+#             padx=25,
+#             pady=1
+#         ).pack(anchor="w")
+
+
+# # =================================================
+# # PLACE OF WORK
+# # =================================================
+
+#     place_frame = tk.Frame(container, bg="white")
+#     place_frame.pack(anchor="w", pady=(0, 15))
+
+#     tk.Label(
+#         place_frame,
+#         text="Place of Work",
+#         bg="white",
+#         font=("Segoe UI", 12, "bold")
+#     ).pack(anchor="w", pady=(0, 8))
+
+#     place_var = tk.StringVar()
+
+#     for p in ["Luisiana", "Others"]:
+#         tk.Radiobutton(
+#             place_frame,
+#             text=p,
+#             variable=place_var,
+#             value=p,
+#             bg="white",
+#             font=("Segoe UI", 10),
+#             anchor="w",
+#             padx=25,
+#             pady=1
+#         ).pack(anchor="w")
+
+
+# # =================================================
+# # EMPLOYMENT STATUS
+# # =================================================
+
+#     status_frame = tk.Frame(container, bg="white")
+#     status_frame.pack(anchor="w")
+
+#     tk.Label(
+#         status_frame,
+#         text="Employment Status",
+#         bg="white",
+#         font=("Segoe UI", 12, "bold")
+#     ).pack(anchor="w", pady=(0, 8))
+
+#     status_var = tk.StringVar()
+
+#     for s in ["Contractual", "Regular"]:
+#         tk.Radiobutton(
+#             status_frame,
+#             text=s,
+#             variable=status_var,
+#             value=s,
+#             bg="white",
+#             font=("Segoe UI", 10),
+#             anchor="w",
+#             padx=25,
+#             pady=1
+#         ).pack(anchor="w")
+
+# # =================================================
+# # EMPLOYMENT TOP SECTION (VERTICAL STACK - LEFT ALIGNED)
+# # =================================================
+
+#     emp_top_frame = tk.Frame(form_frame, bg="white")
+#     emp_top_frame.pack(fill="x", pady=20)
+
+#     container = tk.Frame(emp_top_frame, bg="white")
+#     container.pack(anchor="w", padx=40)
+
+
+# # =================================================
+# # EMPLOYMENT INFORMATION
+# # =================================================
+
+#     emp_info_frame = tk.Frame(container, bg="white")
+#     emp_info_frame.pack(anchor="w", pady=(0, 15))
+
+#     tk.Label(
+#         emp_info_frame,
+#         text="Employment Information",
+#         bg="white",
+#         font=("Segoe UI", 12, "bold")
+#     ).pack(anchor="w", pady=(0, 8))
+
+#     emp_info_var = tk.StringVar()
+#     emp_info_options = ["Private", "Government", "Self-employed"]
+
+#     for opt in emp_info_options:
+#         tk.Radiobutton(
+#             emp_info_frame,
+#             text=opt,
+#             variable=emp_info_var,
+#             value=opt,
+#             bg="white",
+#             font=("Segoe UI", 10),
+#             anchor="w",
+#             padx=25,
+#             pady=1
+#         ).pack(anchor="w")
+
+
+# # =================================================
+# # PLACE OF WORK
+# # =================================================
+
+#     place_frame = tk.Frame(container, bg="white")
+#     place_frame.pack(anchor="w", pady=(0, 15))
+
+#     tk.Label(
+#         place_frame,
+#         text="Place of Work",
+#         bg="white",
+#         font=("Segoe UI", 12, "bold")
+#     ).pack(anchor="w", pady=(0, 8))
+
+#     place_var = tk.StringVar()
+
+#     for p in ["Luisiana", "Others"]:
+#         tk.Radiobutton(
+#             place_frame,
+#             text=p,
+#             variable=place_var,
+#             value=p,
+#             bg="white",
+#             font=("Segoe UI", 10),
+#             anchor="w",
+#             padx=25,
+#             pady=1
+#         ).pack(anchor="w")
+
+
+# # =================================================
+# # EMPLOYMENT STATUS
+# # =================================================
+
+#     status_frame = tk.Frame(container, bg="white")
+#     status_frame.pack(anchor="w")
+
+#     tk.Label(
+#         status_frame,
+#         text="Employment Status",
+#         bg="white",
+#         font=("Segoe UI", 12, "bold")
+#     ).pack(anchor="w", pady=(0, 8))
+
+#     status_var = tk.StringVar()
+
+#     for s in ["Contractual", "Regular"]:
+#         tk.Radiobutton(
+#             status_frame,
+#             text=s,
+#             variable=status_var,
+#             value=s,
+#             bg="white",
+#             font=("Segoe UI", 10),
+#             anchor="w",
+#             padx=25,
+#             pady=1
+#         ).pack(anchor="w")
+
+# # =================================================
+# # DYNAMIC SECTION (STACKED + LEFT-ALIGNED)
+# # =================================================
+
+#     dynamic_frame = tk.Frame(form_frame, bg="white")
+#     dynamic_frame.pack(fill="x", pady=15, anchor="w")
+
+#     dynamic_inner = tk.Frame(dynamic_frame, bg="white")
+#     dynamic_inner.pack(anchor="w")
+
+
+# # =================================================
+# # OFW SECTION
+# # =================================================
+
+#     ofw_box = tk.Frame(dynamic_inner, bg="white")
+#     ofw_box.pack(fill="x", anchor="w", pady=5)
+
+#     # Question (BOLD)
+#     ofw_q_frame = tk.Frame(ofw_box, bg="white")
+#     ofw_q_frame.pack(anchor="w")
+
+#     tk.Label(
+#         ofw_q_frame,
+#         text="Are you an OFW?",
+#         bg="white",
+#         font=("Segoe UI", 10, "bold")
+#     ).pack(anchor="w")
+
+#     ofw_answer = tk.StringVar()
+
+#     # Indented choices
+#     ofw_choices = tk.Frame(ofw_box, bg="white")
+#     ofw_choices.pack(anchor="w", padx=20)
+
+#     ofw_frame = create_ofw_section(ofw_box)
+#     ofw_frame.pack_forget()
+
+#     def toggle_ofw():
+#         if ofw_answer.get() == "Yes":
+#             ofw_frame.pack(fill="x", pady=10)
+#         else:
+#             ofw_frame.pack_forget()
+
+#     for opt in ["Yes", "No"]:
+#         tk.Radiobutton(
+#             ofw_choices,
+#             text=opt,
+#             variable=ofw_answer,
+#             value=opt,
+#             command=toggle_ofw,
+#             bg="white"
+#         ).pack(anchor="w", pady=2)
+
+
+# # =================================================
+# # WORK SECTION
+# # =================================================
+
+#     work_box = tk.Frame(dynamic_inner, bg="white")
+#     work_box.pack(fill="x", anchor="w", pady=5)
+
+#     # Question (BOLD)
+#     status_q_frame = tk.Frame(work_box, bg="white")
+#     status_q_frame.pack(anchor="w")
+
+#     tk.Label(
+#         status_q_frame,
+#         text="Currently:",
+#         bg="white",
+#         font=("Segoe UI", 10, "bold")
+#     ).pack(anchor="w")
+
+#     # ✅ default value
+#     status_answer = tk.StringVar(value="Studying")
+
+#     # Indented choices
+#     status_choices = tk.Frame(work_box, bg="white")
+#     status_choices.pack(anchor="w", padx=20)
+
+#     # create then hide
+#     work_frame = create_work_section(work_box)
+#     work_frame.pack_forget()
+
+#     def toggle_work():
+#         if status_answer.get() == "Working":
+#             work_frame.pack(fill="both", expand=True, pady=10)
+#         else:
+#             work_frame.pack_forget()
+
+#     for opt in ["Studying", "Working"]:
+#         tk.Radiobutton(
+#             status_choices,
+#             text=opt,
+#             variable=status_answer,
+#             value=opt,
+#             command=toggle_work,
+#             bg="white"
+#         ).pack(anchor="w", pady=2)
+
+#     toggle_work()
+
+# # =================================================
+# # LINE BREAK
+# # =================================================
+#     tk.Frame(form_frame, bg="black", height=2, width=700).pack(pady=15, fill="x")
+
+#     age_dynamic_container = tk.Frame(form_frame, bg="white")
+#     age_dynamic_container.pack(fill="x", pady=10)
+
+#     youth_frame = create_youth(age_dynamic_container)
+#     child_frame = create_child(age_dynamic_container)
+
+# # =================================================
+# # SAVE BUTTON
+# # =================================================
+
+#     def validate_birthdate():
+#         return birthdate_var.get() != ""
+
+#     def validate_form():
+#         if not last_name.get().strip():
+#             messagebox.showerror("Error", "Last Name is required")
+#             return False
+
+#         if not middle_name.get().strip():
+#             messagebox.showerror("Error", "Middle Name is required")
+#             return False
+
+#         if not first_name.get().strip():
+#             messagebox.showerror("Error", "First Name is required")
+#             return False
+
+#         if not validate_birthdate():
+#             messagebox.showerror("Error", "Birthdate is required")
+#             return False
+
+#         if not sex_var.get():
+#             messagebox.showerror("Error", "Sex is required")
+#             return False
+
+#         if not address_var.get().strip():
+#             messagebox.showerror("Error", "Address is required")
+#             return False
+
+#         if not barangay_var.get().strip():
+#             messagebox.showerror("Error", "Barangay is required")
+#             return False
+
+#         if not religion_var.get():
+#             messagebox.showerror("Error", "Religion is required")
+#             return False
+
+#         if not interview_date_var.get().strip():
+#             messagebox.showerror("Date of Interview is required")
+#             return False
+
+#         if not interviewer_var.get().strip():
+#             messagebox.showerror("Error", "Interviewed By is required")
+#             return False
+
+#         if not position_var.get().strip():
+#             messagebox.showerror("Error", "Position is required")
+#             return False
+        
+#         return True
+
+#     def save_data():
+#             if validate_form():
+#                 data = {
+#                     "First Name": first_name.get(),
+#                     "Middle Name": middle_name.get(),
+#                     "Last Name": last_name.get(),
+#                     "Extension Name": ext_name.get(),
+#                     "Age": age_var.get(),
+#                     "Birthdate": birthdate_var.get(),
+#                     "Sex": sex_var.get(),
+#                     "Address": address_var.get(),
+#                     "Barangay": barangay_var.get(),
+#                     "Religion": religion_var.get(),
+#                     "Interview Date": interview_date_var.get(),
+#                     "Interviewer": interviewer_var.get(),
+#                     "Position": position_var.get(),
+#                     "Employment Info": emp_info_var.get(),
+#                     "Place of Work": place_var.get(),
+#                     "Employment Status": status_var.get(),
+#                     "OFW Status": ofw_answer.get(),
+#                     "Current Status": status_answer.get()
+#                 }
+            
+#                 resident_data.append(data)  # STORE DATA
+
+#                 # ✅ SUCCESS MESSAGE (always shown on successful save)
+#                 messagebox.showinfo(
+#                     "Success",
+#                     "✔ Resident information saved successfully!"
+#                 )
+
+#                 # (OPTIONAL BUT RECOMMENDED) clear form after saving
+#                 last_name.set("")
+#                 middle_name.set("")
+#                 first_name.set("")
+#                 ext_name.set("")
+#                 birthdate_var.set("")
+#                 age_var.set("")
+#                 address_var.set("")
+#                 barangay_var.set("")
+#                 religion_var.set("")
+#                 other_religion_var.set("")
+#                 sex_var.set("")
+#                 interview_date_var.set("")
+#                 interviewer_var.set("")
+#                 position_var.set("")
+#                 emp_info_var.set("")
+#                 place_var.set("")
+#                 status_var.set("")
+#                 ofw_answer.set("")
+#                 status_answer.set("Studying")
+
+#                 age_dynamic_container.pack_forget()
+
+#             # destroy instead of just hiding (THIS is the missing piece)
+#             youth_frame.destroy()
+#             child_frame.destroy()
+#             ofw_frame.destroy()
+#             work_frame.destroy()
+
+#             youth_frame.pack_forget()
+#             child_frame.pack_forget()
+#             ofw_frame.pack_forget()
+#             work_frame.pack_forget()
+
+#             # recreate empty containers (so logic still works next input)
+#             youth_frame = create_youth(age_dynamic_container)
+#             child_frame = create_child(age_dynamic_container)
+#             ofw_frame = create_ofw_section(ofw_box)
+#             work_frame = create_work_section(work_box)
+
+        
+#             # ✅ force UI reflow to remove empty space
+#             dynamic_frame.update_idletasks()
+#             scroll_frame.update_idletasks()
+
+#     # 🔥 IMPORTANT: update scroll region (this removes “ghost space”)
+#             canvas.configure(scrollregion=canvas.bbox("all"))
+#             form_frame.update_idletasks()
+
+#             # =================================================
+#             # LOCAL STORAGE (KEEP THIS)
+#             # =================================================
+#             resident_data.append(data)
+        
+#         # ================= MYSQL SAVE =================
+
+#             conn = connect_db()
+#             cursor = conn.cursor()
+
+#             # ---------------- RESPONDERS ----------------
+#             cursor.execute("""
+#                 INSERT INTO responders (
+#                     Date_Of_Interview
+#                 )
+#                 VALUES (%s)
+#             """, (
+#                 interview_date_var.get(),
+#             ))
+
+#             respondent_id = cursor.lastrowid
+
+#             # ---------------- PERSONAL INFORMATION ----------------
+#             cursor.execute("""
+#                 INSERT INTO Personal_Information (
+#                     Respondent_ID,
+#                     First_Name,
+#                     Middle_Name,
+#                     Last_Name,
+#                     Extension_Name,
+#                     Age,
+#                     Date_Of_Birth,
+#                     Gender,
+#                     House_Number,
+#                     Street_Name,
+#                     Barangay,
+#                     Religion,
+#                     Contact_Number
+#                 )
+#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#             """, (
+#                 respondent_id,
+#                 first_name.get(),
+#                 middle_name.get(),
+#                 last_name.get(),
+#                 ext_name.get(),
+#                 age_var.get(),
+#                 birthdate_var.get(),
+#                 sex_var.get(),
+#                 0,
+#                 address_var.get(),
+#                 barangay_var.get(),
+#                 religion_var.get(),
+#                 0
+#             ))
+
+#             conn.commit()
+#             conn.close()
+
+# # =================================================
+# # DYNAMIC AGE-BASED SECTIONS CONTAINER (BEFORE SAVE BUTTON)
+# # =================================================
+
+#     age_dynamic_container = tk.Frame(form_frame, bg="white")
+#     age_dynamic_container.pack(fill="x", pady=10)
+
+
+#     # IMPORTANT: attach to correct container (NO LOGIC CHANGE)
+#     youth_frame = create_youth(age_dynamic_container)
+#     child_frame = create_child(age_dynamic_container)
+
+#     # keep them hidden initially (your logic already controls this too)
+#     youth_frame.pack_forget()
+#     child_frame.pack_forget()
+
+    
+
+
+# # =================================================
+# # SAVE BUTTON (MUST ALWAYS BE LAST)
+# # =================================================
+  
+#     tk.Button(
+#         form_frame,
+#         text="Save",
+#         bg="#273c75",
+#         fg="white",
+#         command=save_data
+#     ).pack(pady=20)
+
+#     return frame
